@@ -1,0 +1,74 @@
+[project]
+name = "nf-extractor-ai"
+version = "0.1.0"
+description = "AI pipeline that turns unstructured documents into validated, structured data using OCR, layout analysis, and vision LLMs."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Filipe Rangel" }]
+requires-python = ">=3.12"
+keywords = ["document-ai", "computer-vision", "llm", "nf-e", "nota-fiscal", "data-extraction"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Typing :: Typed",
+]
+dependencies = [
+    "anthropic>=2.3,<3",
+    "pydantic>=2.9,<3",
+    "pydantic-settings>=2.6,<3",
+    "typer>=0.12,<1",
+]
+
+[project.urls]
+Repository = "https://github.com/Filip3Owl/nf-extractor-ai"
+Issues = "https://github.com/Filip3Owl/nf-extractor-ai/issues"
+Changelog = "https://github.com/Filip3Owl/nf-extractor-ai/blob/main/CHANGELOG.md"
+
+[project.scripts]
+nf-extractor = "nf_extractor.cli:app"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.13",
+    "pre-commit>=4.0",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nf_extractor"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "C4", "D", "N", "PTH", "RUF", "SIM", "UP"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["typer.Argument", "typer.Option"]
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --cov=nf_extractor --cov-report=term-missing --cov-fail-under=90"
+testpaths = ["tests"]
