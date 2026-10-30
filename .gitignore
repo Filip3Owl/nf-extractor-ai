@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+
+# Tooling caches and reports
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Real fiscal documents contain personal and commercial data: never commit them
+data/
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.webp
+!docs/assets/**
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/
