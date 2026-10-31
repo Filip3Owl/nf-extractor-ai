@@ -6,3 +6,4 @@ Each record explains a significant decision, why it was made, and what it costs.
 |---|---|
 | [0001](0001-pluggable-document-types-and-extractors.md) | Pluggable document types and extractors |
 | [0002](0002-claude-structured-outputs.md) | Claude structured outputs as the first backend |
+| [0003](0003-public-llm-apis.md) | Public LLM APIs through one chat completions backend |

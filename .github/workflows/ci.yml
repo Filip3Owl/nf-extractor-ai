@@ -22,7 +22,7 @@ jobs:
         with:
           enable-cache: true
       - name: Install dependencies
-        run: uv sync --locked --python ${{ matrix.python-version }}
+        run: uv sync --locked --all-extras --python ${{ matrix.python-version }}
       - name: Lint
         run: uv run ruff check .
       - name: Check formatting
@@ -31,3 +31,5 @@ jobs:
         run: uv run mypy
       - name: Test
         run: uv run pytest
+      - name: Test with the real OCR models
+        run: uv run pytest -m ocr --no-cov

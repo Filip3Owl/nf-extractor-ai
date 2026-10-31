@@ -21,6 +21,18 @@ class Settings(BaseSettings):
     anthropic_api_key: SecretStr | None = Field(
         default=None, validation_alias=AliasChoices("ANTHROPIC_API_KEY")
     )
+    gemini_api_key: SecretStr | None = Field(
+        default=None, validation_alias=AliasChoices("GEMINI_API_KEY")
+    )
+    groq_api_key: SecretStr | None = Field(
+        default=None, validation_alias=AliasChoices("GROQ_API_KEY")
+    )
+    openrouter_api_key: SecretStr | None = Field(
+        default=None, validation_alias=AliasChoices("OPENROUTER_API_KEY")
+    )
+    llm_api_key: SecretStr | None = None
+    llm_base_url: str | None = None
+    llm_model: str | None = None
     model: str = DEFAULT_MODEL
     effort: Effort = DEFAULT_EFFORT
     max_tokens: int = Field(default=DEFAULT_MAX_TOKENS, gt=0)

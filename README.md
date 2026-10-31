@@ -10,7 +10,7 @@ AI pipeline that turns unstructured documents into validated, structured data us
 
 The first supported document is the **DANFE**, the printed form of Brazilian electronic invoices (NF-e and NFC-e). A vision LLM reads the PDF or image, and deterministic rules then check the result, so a misread value is flagged instead of silently reaching your systems.
 
-> **Project status: alpha.** The vision LLM extraction, validation rules, and CLI are implemented and covered by automated tests that simulate the API. Accuracy has not yet been measured on real documents, and OCR and layout analysis are planned. See the [roadmap](#roadmap).
+> **Project status: alpha.** The LLM and local OCR extraction, validation rules, evaluation harness and CLI are implemented. Tests simulate the LLM APIs, so no LLM has been measured yet, and accuracy has not been measured on real documents. See the [roadmap](#roadmap).
 
 ## Why validation matters
 
@@ -42,6 +42,27 @@ uv run nf-extractor extract path/to/danfe.pdf --output result.json
 ```
 
 Each extraction makes one paid API call, and its token usage is recorded in the output.
+
+### Choose an extractor
+
+| `--extractor` | Cost | Documents leave your machine | Setup |
+|---|---|---|---|
+| `claude` (default) | Paid | Yes | `ANTHROPIC_API_KEY` |
+| `gemini` | Free tier, with limits | Yes | `GEMINI_API_KEY` and `uv sync --extra vision` |
+| `groq` | Free tier, with limits | Yes | `GROQ_API_KEY` and `uv sync --extra vision` |
+| `openrouter` | Free models, with limits | Yes | `OPENROUTER_API_KEY` and `uv sync --extra vision` |
+| `custom` | Depends on the API | Depends on the API | `NF_EXTRACTOR_LLM_BASE_URL`, `NF_EXTRACTOR_LLM_MODEL` and `uv sync --extra vision` |
+| `ocr` | Free | No | `uv sync --extra ocr` |
+
+The `vision` extra is needed only for PDFs. Availability on free tiers varies by provider and changes often.
+
+To measure an extractor on fictional invoices:
+
+```bash
+uv sync --all-extras
+uv run nf-extractor eval generate --count 5
+uv run nf-extractor eval run --extractor ocr
+```
 
 ### Output
 
@@ -102,15 +123,20 @@ Settings come from environment variables or a `.env` file.
 | Variable | Default | Description |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | none | API key for Claude. |
-| `NF_EXTRACTOR_MODEL` | `claude-opus-5-5` | Model used for extraction. |
-| `NF_EXTRACTOR_EFFORT` | `high` | Reasoning effort: `low`, `medium`, `high`, `xhigh` or `max`. |
+| `GEMINI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY` | none | API key for each public LLM API. |
+| `NF_EXTRACTOR_MODEL` | `claude-opus-5-5` | Claude model used for extraction. |
+| `NF_EXTRACTOR_EFFORT` | `high` | Claude reasoning effort: `low`, `medium`, `high`, `xhigh` or `max`. |
 | `NF_EXTRACTOR_MAX_TOKENS` | `16000` | Response size limit. Raise it for very long invoices. |
+| `NF_EXTRACTOR_LLM_MODEL` | Per provider | Replaces the default model of `gemini`, `groq` or `openrouter`. Required for `custom`. |
+| `NF_EXTRACTOR_LLM_BASE_URL` | none | Address of the API used by `custom`, without `/chat/completions`. |
+| `NF_EXTRACTOR_LLM_API_KEY` | none | API key used by `custom`. |
 
 ## Data privacy
 
 Invoices contain personal and commercial data, so they may be subject to Brazil's LGPD.
 
-- **Documents are sent to the Claude API for processing.** Make sure you have a legal basis for sharing them and that this suits your data retention requirements.
+- **Except with `ocr`, documents are sent to an external API for processing.** Make sure you have a legal basis for sharing them and that this suits your data retention requirements.
+- **Do not send real invoices to free tiers.** Providers may use what they receive there. For example, Google's [Gemini API terms](https://ai.google.dev/gemini-api/terms) allow it to use that content to improve its products and allow human review, and they ask users not to submit personal information. Use free tiers with synthetic documents, and check each provider's terms.
 - `Document` representations and schema validation errors leave out document contents, so they are safer to log.
 - `.gitignore` excludes PDFs, images and `data/`. Tests use synthetic data only.
 - Documents are treated as untrusted input. The model is told not to follow instructions found inside them, and the deterministic validators act as an independent check. This reduces the risk of prompt injection but cannot eliminate it, so review results before using them in automated decisions.
@@ -121,8 +147,12 @@ Invoices contain personal and commercial data, so they may be subject to Brazil'
 flowchart LR
     A[PDF or image] --> B[load_document]
     B --> C[Extractor protocol]
-    C --> D[ClaudeExtractor]
-    D --> E[Pydantic schema]
+    C --> D1[ClaudeExtractor]
+    C --> D2[OpenAICompatibleExtractor]
+    C --> D3[DanfeOcrExtractor]
+    D1 --> E[Pydantic schema]
+    D2 --> E
+    D3 --> E
     E --> F[Business rules]
     F --> G[ExtractionResult]
 ```
@@ -137,10 +167,12 @@ Read more in the [architecture guide](docs/architecture.md) and the [decision re
 ## Roadmap
 
 - [x] Generic pipeline, NF-e schema, validation rules, Claude extractor and CLI
-- [ ] Synthetic DANFE dataset and an evaluation harness with per-field accuracy
+- [x] Synthetic DANFE dataset and an evaluation harness with per-field accuracy
+- [x] OCR and layout analysis backend, to compare accuracy and cost against the LLM
+- [x] Backend for public LLM APIs: Gemini, Groq, OpenRouter and other compatible APIs
+- [ ] First evaluation of the LLM backends, which needs API keys
 - [ ] NF-e XML parser, to provide ground truth for evaluation
-- [ ] Image preprocessing with OpenCV: deskewing, denoising and cropping
-- [ ] OCR and layout analysis backend, to compare accuracy and cost against the LLM
+- [ ] More image preprocessing with OpenCV: denoising and cropping (deskewing is done)
 - [ ] Batch processing and a FastAPI service with Docker
 - [ ] Web demo on Hugging Face Spaces
 - [ ] More document types: CT-e, NFS-e and boleto
