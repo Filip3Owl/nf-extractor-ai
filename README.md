@@ -1,5 +1,7 @@
 # nf-extractor-ai
 
+![nf-extractor-ai, in 8-bit lettering](docs/assets/banner.svg)
+
 [![CI](https://github.com/Filip3Owl/nf-extractor-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/Filip3Owl/nf-extractor-ai/actions/workflows/ci.yml)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
