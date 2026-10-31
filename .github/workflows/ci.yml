@@ -16,13 +16,16 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.12", "3.13", "3.14"]
+    env:
+      # Without this, `uv run` follows .python-version and replaces the environment.
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
       - name: Install dependencies
-        run: uv sync --locked --all-extras --python ${{ matrix.python-version }}
+        run: uv sync --locked --all-extras
       - name: Lint
         run: uv run ruff check .
       - name: Check formatting
