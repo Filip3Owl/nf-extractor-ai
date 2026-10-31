@@ -18,8 +18,12 @@ src/nf_extractor/
 │   └── result.py         # ExtractionResult, ValidationIssue and Severity
 ├── document_types/       # One subpackage per kind of document
 │   └── nfe/              # Schema, instructions and validators for NF-e and NFC-e
+├── evaluation/           # Synthetic documents, metrics and the evaluation harness
 ├── extractors/           # Implementations of the Extractor protocol
-│   └── claude.py
+│   ├── claude.py
+│   ├── common.py         # Prompt and response handling shared by the LLM extractors
+│   ├── danfe_ocr.py      # Local OCR followed by layout rules
+│   └── openai_compatible.py # Gemini, Groq, OpenRouter and other chat completions APIs
 ├── validators/           # Rules shared between document types
 │   └── br_identifiers.py # CPF, CNPJ and access keys
 ├── cli.py                # Command-line interface

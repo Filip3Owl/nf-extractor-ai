@@ -23,6 +23,7 @@ htmlcov/
 
 # Real fiscal documents contain personal and commercial data: never commit them
 data/
+reports/
 *.pdf
 *.png
 *.jpg

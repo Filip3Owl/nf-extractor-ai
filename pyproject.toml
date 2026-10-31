@@ -6,7 +6,7 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Filipe Rangel" }]
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.15"
 keywords = ["document-ai", "computer-vision", "llm", "nf-e", "nota-fiscal", "data-extraction"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -19,9 +19,33 @@ classifiers = [
 ]
 dependencies = [
     "anthropic>=2.3,<3",
+    "httpx2>=2",
     "pydantic>=2.9,<3",
     "pydantic-settings>=2.6,<3",
     "typer>=0.12,<1",
+]
+
+[project.optional-dependencies]
+# Free local OCR. OpenVINO runs the models because onnxruntime has no wheels for Intel Macs.
+ocr = [
+    "numpy>=2.0",
+    "opencv-python-headless>=4.10,<4.11",
+    "openvino>=2024.4,<2026",
+    "pypdfium2>=4.30,<5.12",
+    "rapidocr>=3.0,<4",
+]
+# Renders PDFs as images for the public LLM APIs, most of which accept only images.
+vision = [
+    "numpy>=2.0",
+    "opencv-python-headless>=4.10,<4.11",
+    "pypdfium2>=4.30,<5.12",
+]
+# Synthetic dataset generation and the evaluation harness.
+eval = [
+    "numpy>=2.0",
+    "opencv-python-headless>=4.10,<4.11",
+    "pypdfium2>=4.30,<5.12",
+    "reportlab>=4.2",
 ]
 
 [project.urls]
@@ -44,6 +68,13 @@ dev = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv]
+# Keeps Intel Macs on macOS 12 supported. Recent OpenVINO, pypdfium2 and OpenCV releases have no
+# wheels for them, which is why those dependencies have upper bounds. Building OpenCV from source
+# takes a very long time, so it is never allowed.
+no-build-package = ["opencv-python-headless"]
+required-environments = ["sys_platform == 'darwin' and platform_machine == 'x86_64'"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nf_extractor"]
@@ -69,6 +100,11 @@ strict = true
 files = ["src", "tests"]
 plugins = ["pydantic.mypy"]
 
+[[tool.mypy.overrides]]
+module = ["rapidocr.*", "reportlab.*", "pypdfium2.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
-addopts = "--strict-markers --cov=nf_extractor --cov-report=term-missing --cov-fail-under=90"
+addopts = "--strict-markers -m 'not ocr' --cov=nf_extractor --cov-report=term-missing --cov-fail-under=90"
 testpaths = ["tests"]
+markers = ["ocr: runs the real OCR models, which are downloaded on first use"]

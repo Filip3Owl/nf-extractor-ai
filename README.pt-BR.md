@@ -6,7 +6,7 @@ Pipeline de IA que transforma documentos não estruturados em dados estruturados
 
 O primeiro documento suportado é o **DANFE**, a representação impressa da NF-e e da NFC-e. Um LLM com visão lê o PDF ou a imagem, e regras determinísticas conferem o resultado. Assim, um valor lido incorretamente é sinalizado em vez de chegar silenciosamente aos seus sistemas.
 
-> **Status: alfa.** A extração por LLM com visão, as regras de validação e o CLI estão implementados e cobertos por testes automatizados que simulam a API. A precisão ainda não foi medida em documentos reais, e OCR e análise de layout estão planejados.
+> **Status: alfa.** A extração por LLM e por OCR local, as regras de validação, a avaliação e o CLI estão implementados. Os testes simulam as APIs de LLM, então nenhum LLM foi medido ainda, e a precisão não foi medida em documentos reais.
 
 ## O que é validado
 
@@ -37,9 +37,24 @@ uv run nf-extractor extract caminho/para/danfe.pdf --output resultado.json
 
 Cada extração faz uma chamada paga à API, e o consumo de tokens fica registrado na saída.
 
+### Como escolher o extrator
+
+| `--extractor` | Custo | O documento sai da sua máquina | Configuração |
+|---|---|---|---|
+| `claude` (padrão) | Pago | Sim | `ANTHROPIC_API_KEY` |
+| `gemini` | Camada gratuita, com limites | Sim | `GEMINI_API_KEY` e `uv sync --extra vision` |
+| `groq` | Camada gratuita, com limites | Sim | `GROQ_API_KEY` e `uv sync --extra vision` |
+| `openrouter` | Modelos gratuitos, com limites | Sim | `OPENROUTER_API_KEY` e `uv sync --extra vision` |
+| `custom` | Depende da API | Depende da API | `NF_EXTRACTOR_LLM_BASE_URL`, `NF_EXTRACTOR_LLM_MODEL` e `uv sync --extra vision` |
+| `ocr` | Grátis | Não | `uv sync --extra ocr` |
+
+O extra `vision` só é necessário para PDFs. A disponibilidade nas camadas gratuitas varia por provedor e muda com frequência.
+
 ## Privacidade
 
-Notas fiscais contêm dados pessoais e comerciais e podem estar sujeitas à LGPD. **Os documentos são enviados à API do Claude para processamento.** Confirme que você tem base legal para compartilhá-los e que isso atende aos seus requisitos de retenção de dados. Nunca faça commit de documentos reais: os testes usam apenas dados sintéticos.
+Notas fiscais contêm dados pessoais e comerciais e podem estar sujeitas à LGPD. **Exceto com `ocr`, os documentos são enviados a uma API externa para processamento.** Confirme que você tem base legal para compartilhá-los e que isso atende aos seus requisitos de retenção de dados. Nunca faça commit de documentos reais: os testes usam apenas dados sintéticos.
+
+**Não envie notas reais para camadas gratuitas.** Os provedores podem usar o que recebem nelas. Os [termos da API Gemini](https://ai.google.dev/gemini-api/terms), por exemplo, permitem usar esse conteúdo para melhorar produtos e permitem revisão humana, além de pedir que dados pessoais não sejam enviados. Use camadas gratuitas com documentos sintéticos e confira os termos de cada provedor.
 
 ## Documentação
 

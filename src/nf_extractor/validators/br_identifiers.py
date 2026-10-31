@@ -38,6 +38,23 @@ def _has_valid_check_digits(identifier: str, count: int, max_weight: int) -> boo
     return True
 
 
+def with_cpf_check_digits(base: str) -> str:
+    """Append the two check digits to the first 9 digits of a CPF."""
+    first = _check_digit(base, max_weight=11)
+    return f"{base}{first}{_check_digit(f'{base}{first}', max_weight=11)}"
+
+
+def with_cnpj_check_digits(base: str) -> str:
+    """Append the two check digits to the first 12 characters of a CNPJ."""
+    first = _check_digit(base, max_weight=9)
+    return f"{base}{first}{_check_digit(f'{base}{first}', max_weight=9)}"
+
+
+def with_access_key_check_digit(base: str) -> str:
+    """Append the check digit to the first 43 characters of an NF-e access key."""
+    return f"{base}{_check_digit(base, max_weight=9)}"
+
+
 def is_valid_cpf(value: str) -> bool:
     """Check a CPF's format and check digits. Punctuation is ignored."""
     cpf = normalize_identifier(value)
